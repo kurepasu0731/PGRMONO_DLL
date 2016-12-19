@@ -1,18 +1,29 @@
 #include "PGROpenCV.h"
 #include <Windows.h>
 
+
 // Constructor
 TPGROpenCV::TPGROpenCV(int _useCameraIndex)
 {
 	windowNameCamera = "camera";
 	cv::namedWindow(windowNameCamera.c_str(), cv::WINDOW_NORMAL);
 
-	useCamIndex = _useCameraIndex;
+	//動画再生//
+	if(_useCameraIndex == -1)
+	{
+		isPlayMode = true;
+		useCamIndex = 0; //0番のカメラをつかってることにする
+		 vc = cv::VideoCapture("record.avi");
+	}
+	else
+	{
+		isPlayMode = false;
+		useCamIndex = _useCameraIndex;
+	}
 
 	critical_section = boost::shared_ptr<criticalSection> (new criticalSection);
 	imgsrc = boost::shared_ptr<imgSrc>(new imgSrc);
 	imgsrc->image = cv::Mat::zeros(CAMERA_HEIGHT, CAMERA_WIDTH, CV_8UC3);
-
 	dots.clear();
 
 }
@@ -21,6 +32,10 @@ TPGROpenCV::TPGROpenCV(int _useCameraIndex)
 TPGROpenCV::~TPGROpenCV()
 {
 	thread.join();
+	if(&vc != NULL)
+	{
+		vc.release();
+	}
 }
 
 // initialize PGR
@@ -171,7 +186,14 @@ int TPGROpenCV::start()
 		running = true;
 
 		//スレッド生成
-		thread = boost::thread( &TPGROpenCV::threadFunction, this);
+		if(!isPlayMode)
+		{
+			thread = boost::thread( &TPGROpenCV::threadFunction, this);
+		}
+		else
+		{
+			thread = boost::thread( &TPGROpenCV::threadFunction_PlayMode, this);
+		}
 
 		return 0;
 	}
@@ -359,7 +381,6 @@ void TPGROpenCV::setFrameRate(float framerate)
 	fc2Cam.SetProperty(&fc2Prop);
 }
 
-//
 void TPGROpenCV::showCapImg(cv::Mat cap)
 {
 	//cv::namedWindow(windowNameCamera.c_str(), cv::WINDOW_NORMAL);
@@ -448,6 +469,45 @@ void TPGROpenCV::threadFunction()
 		critical_section->setImageSource(imgsrc);
 
 		//cv::imshow("dots detect", drawimage);
+	}
+}
+
+void TPGROpenCV::threadFunction_PlayMode()
+{
+	while(!quit)
+	{
+		boost::shared_ptr<imgSrc> imgsrc = boost::shared_ptr<imgSrc>(new imgSrc);
+		boost::unique_lock<boost::mutex> lock(mutex);
+
+		vc >> cap;
+
+		//たぶんBGRできちゃうからGRAYに変換
+		cv::Mat cap_gray;
+		cv::cvtColor(cap, cap_gray, CV_BGR2GRAY);
+
+		if(!cap.empty())
+		{
+			//ドット検出
+			cv::Mat drawimage;
+			getDots(cap_gray, dots, A_THRESH_VAL, DOT_THRESH_VAL_MIN, DOT_THRESH_VAL_MAX, RESIZESCALE, drawimage);
+
+			lock.unlock();
+
+			//imgsrc->image = drawimage;
+			imgsrc->image = cap;
+			imgsrc->dotsCount = dots.size();
+			//vectorからint配列に(x,y,x,y,…の順)
+			imgsrc->dots_data.clear();
+			for(int i = 0; i < dots.size(); i++)
+			{
+				imgsrc->dots_data.emplace_back(dots[i].x);
+				imgsrc->dots_data.emplace_back(dots[i].y);
+		
+			}
+
+			critical_section->setImageSource(imgsrc);
+		}
+
 	}
 }
 

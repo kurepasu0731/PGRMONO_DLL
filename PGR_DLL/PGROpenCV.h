@@ -104,6 +104,14 @@ public:
 
 	cv::Mat mask; //投影対象領域（マスク用）
 
+	//動画再生
+	bool isPlayMode;
+	cv::VideoCapture vc; 
+	cv::Mat cap;
+
+	void setQuit(bool q) { quit = q; };
+	bool getQuit() { return quit;};
+
 	Timer tm;
 
 protected:
@@ -112,6 +120,7 @@ protected:
 
 	//スレッド処理
 	void threadFunction();
+	void threadFunction_PlayMode();
 
 	bool quit;
 	bool running;
