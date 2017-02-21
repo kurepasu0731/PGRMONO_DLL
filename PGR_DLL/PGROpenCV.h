@@ -14,6 +14,9 @@
 #include "Timer.h"
 #include "criticalSection.h"
 
+#include <atltime.h>
+
+
 class TPGROpenCV
 {
 private:
@@ -58,6 +61,19 @@ private:
 
 	bool getDots(cv::Mat &src, std::vector<cv::Point> &dots, double C, int dots_thresh_min, int dots_thresh_max, float resizeScale, cv::Mat &drawimage);
 
+	//処理時間計測・DebugLog表示用
+
+	CFileTime cTimeStart, cTimeEnd;
+	CFileTimeSpan cTimeSpan;
+
+	void startTic()
+	{
+		cTimeStart = CFileTime::GetCurrentTime();// 現在時刻
+	}
+
+	//処理時間計測用・DebugLog表示用
+	//文字列が長すぎると文字化ける
+	void stopTic(std::string label);
 
 
 public:

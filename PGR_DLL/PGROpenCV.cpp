@@ -1,4 +1,5 @@
 #include "PGROpenCV.h"
+#include "DebugLogWrapper.h"
 #include <Windows.h>
 
 
@@ -37,6 +38,19 @@ TPGROpenCV::~TPGROpenCV()
 		vc.release();
 	}
 }
+
+//処理時間計測用・DebugLog表示用
+//文字列が長すぎると文字化ける
+void TPGROpenCV::stopTic(std::string label)
+{
+		cTimeEnd = CFileTime::GetCurrentTime();           // 現在時刻
+		cTimeSpan = cTimeEnd - cTimeStart;
+		//debug_log(log);
+		//debug_log(std::to_string(cTimeSpan.GetTimeSpan()/10000));
+		std::string timelog = label +": " + std::to_string(cTimeSpan.GetTimeSpan()/10000);
+		debug_log(timelog);
+}
+
 
 // initialize PGR
 int TPGROpenCV::init(FlyCapture2::PixelFormat _format, int ColorProcessingAlgorithm)
@@ -420,6 +434,8 @@ void TPGROpenCV::threadFunction()
 {
 	while(!quit)
 	{
+		//startTic();
+
 		boost::shared_ptr<imgSrc> imgsrc = boost::shared_ptr<imgSrc>(new imgSrc);
 		boost::unique_lock<boost::mutex> lock(mutex);
 		queryFrame();
@@ -467,6 +483,8 @@ void TPGROpenCV::threadFunction()
 		//imgsrc->dots_data = dataarray;
 
 		critical_section->setImageSource(imgsrc);
+		
+		//stopTic("cameraThread");
 
 		//cv::imshow("dots detect", drawimage);
 	}
