@@ -1,35 +1,20 @@
 #include "Source.h"
-//#include "DebugLogWrapper.h"
 
 DLLExport void* getPGR(int device)
 {
-
-	//-1だったら再生モード
-	//if(device != -1)
-	//{
-		//普通にPGRから取ってくるとき
-		return static_cast<void*>(new TPGROpenCV(device));
-	//}
-	//else
-	//{
-	//	//録画再生用	
-	//	return static_cast<void*>(new cv::VideoCapture("capture.avi"));
-	//}
+	return static_cast<void*>(new TPGROpenCV(device));
 }
 
 DLLExport void initPGR(void* pgr, int device)
 {
-	//if(device != -1)
-	//{
-		auto pgrOpenCV = static_cast<TPGROpenCV*>(pgr);
+	auto pgrOpenCV = static_cast<TPGROpenCV*>(pgr);
 
-		//モノクロ1chで取ってくる
-		pgrOpenCV->init(FlyCapture2::PIXEL_FORMAT_MONO8, FlyCapture2::HQ_LINEAR);
-		pgrOpenCV->start();
+	//モノクロ1chで取ってくる
+	pgrOpenCV->init(FlyCapture2::PIXEL_FORMAT_MONO8, FlyCapture2::HQ_LINEAR);
+	pgrOpenCV->start();
 
-		//録画用
-		videoWriter = cv::VideoWriter("capture.avi", CV_FOURCC('X','V','I','D'), pgrOpenCV->getFramerate(), cv::Size(PGRWIDTH, PGRHEIGHT), true); //isColorで3ch or 1ch
-	//}
+	//録画用
+	videoWriter = cv::VideoWriter("capture.avi", CV_FOURCC('X','V','I','D'), pgrOpenCV->getFramerate(), cv::Size(PGRWIDTH, PGRHEIGHT), true); //isColorで3ch or 1ch
 }
 
 DLLExport void releasePGR(void* pgr, int device)
@@ -57,8 +42,6 @@ DLLExport void getPGRTexture(void* pgr, int device, unsigned char* data, bool is
 	{
 		//録画フラグがたっていたら録画もする
 		if(isRecord) videoWriter << img;
-
-		//std::cout << "img size:" << img.rows << " * " << img.cols << std::endl;
     
 		if(isShowWin)
 		{
@@ -71,38 +54,19 @@ DLLExport void getPGRTexture(void* pgr, int device, unsigned char* data, bool is
 		}
 		//↓↓処理するのはこっちに戻ってやるのだからx反転色変換いらないのでは？？
 		// RGB --> ARGB 変換
-		//   cv::Mat argb_img, flip_img;
-		//   //cv::cvtColor(resized_img, argb_img, CV_RGB2BGRA);
-		//   cv::cvtColor(img, argb_img, CV_RGB2BGRA);
-		//   std::vector<cv::Mat> bgra;
-		//   cv::split(argb_img, bgra);
-		//   std::swap(bgra[0], bgra[3]);
-		//   std::swap(bgra[1], bgra[2]);
+		//cv::Mat argb_img, flip_img;
+		////cv::cvtColor(resized_img, argb_img, CV_RGB2BGRA);
+		//cv::cvtColor(img, argb_img, CV_RGB2BGRA);
+		//std::vector<cv::Mat> bgra;
+		//cv::split(argb_img, bgra);
+		//std::swap(bgra[0], bgra[3]);
+		//std::swap(bgra[1], bgra[2]);
 		////x軸反転
 		//cv::flip(argb_img, flip_img, 0);
-		//   std::memcpy(data, flip_img.data, flip_img.total() * flip_img.elemSize());
+		//std::memcpy(data, flip_img.data, flip_img.total() * flip_img.elemSize());
 
 		std::memcpy(data, img.data, img.total() * img.elemSize());
 	}
-	//else
-	//{
-	//	auto vc = static_cast<cv::VideoCapture*>(pgr);
-	//	// カメラ画の取得
-	//	cv::Mat img;
-	//	*vc >> img;
-	//	if(!img.empty())
-	//	{
-	//		if(isShowWin)
-	//		{
-	//			// リサイズ
-	//			cv::Mat resized_img(img.rows * 0.5, img.cols * 0.5, img.type());
-	//			cv::resize(img, resized_img, resized_img.size(), cv::INTER_CUBIC);   
-	//			// 別ウィンドウの画を更新
-	//			cv::imshow("camera", resized_img);
-	//		}
-	//		std::memcpy(data, img.data, img.total() * img.elemSize());
-	//	}
-	//}
 }
 
 DLLExport void showPixelData(unsigned char* data)
@@ -119,9 +83,9 @@ DLLExport void showPixelData(unsigned char* data)
 //**ドット検出関連**//
 DLLExport void setDotsParameters(void* pgr, double AthreshVal, int DotThreshValMin, int DotThreshValMax, int DotThreshValBright, float resizeScale)
 {
-auto pgrOpenCV = static_cast<TPGROpenCV*>(pgr);
+	auto pgrOpenCV = static_cast<TPGROpenCV*>(pgr);
 
-pgrOpenCV->setDotsParameters(AthreshVal, DotThreshValMin, DotThreshValMax, DotThreshValBright, resizeScale);
+	pgrOpenCV->setDotsParameters(AthreshVal, DotThreshValMin, DotThreshValMax, DotThreshValBright, resizeScale);
 
 }
 

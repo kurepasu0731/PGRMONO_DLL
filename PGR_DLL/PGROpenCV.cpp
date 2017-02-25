@@ -45,8 +45,6 @@ void TPGROpenCV::stopTic(std::string label)
 {
 		cTimeEnd = CFileTime::GetCurrentTime();           // 現在時刻
 		cTimeSpan = cTimeEnd - cTimeStart;
-		//debug_log(log);
-		//debug_log(std::to_string(cTimeSpan.GetTimeSpan()/10000));
 		std::string timelog = label +": " + std::to_string(cTimeSpan.GetTimeSpan()/10000);
 		debug_log(timelog);
 }
@@ -444,17 +442,6 @@ void TPGROpenCV::threadFunction()
 		cv::Mat drawimage;
 		getDots(fc2Mat, dots, A_THRESH_VAL, DOT_THRESH_VAL_MIN, DOT_THRESH_VAL_MAX, RESIZESCALE, drawimage);
 
-		//cv::Mat gray;
-		//cv::cvtColor(fc2Mat, gray, CV_RGB2GRAY);
-		//cv::Mat resized;
-		//cv::resize(gray, resized, cv::Size(), RESIZESCALE, RESIZESCALE);
-		////適応的閾値処理
-		//cv::adaptiveThreshold(resized, resized, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 7, A_THRESH_VAL);
-		////膨張処理
-		//cv::dilate(resized, resized, cv::Mat());
-		//cv::Mat ptsImg = cv::Mat::zeros( CAMERA_HEIGHT, CAMERA_WIDTH, CV_8UC1); //原寸大表示用
-		//cv::resize(resized, ptsImg, cv::Size(), 1/RESIZESCALE, 1/RESIZESCALE);
-
 		lock.unlock();
 
 		//imgsrc->image = drawimage;
@@ -462,25 +449,14 @@ void TPGROpenCV::threadFunction()
 		cv::cvtColor(fc2Mat, color, CV_GRAY2RGB);
 		imgsrc->image = color;
 		imgsrc->dotsCount = dots.size();
-		////vectorからint配列に(x,y,x,y,…の順)
-		//data.clear();
+		//Pointからintのvectorに(x,y,x,y,…の順)
 		imgsrc->dots_data.clear();
-		//int *dataarray = new int[dots.size() * 2];
 		for(int i = 0; i < dots.size(); i++)
 		{
-			//imgsrc->dots_data[i] = dots[i].x;
-			//imgsrc->dots_data[i + 1] = dots[i].y;
-			//data.push_back(dots[i].x);
-			//data.push_back(dots[i].y);
-			//dataarray[i] = dots[i].x;
-			//dataarray[i + 1] = dots[i].y;
 			imgsrc->dots_data.emplace_back(dots[i].x);
 			imgsrc->dots_data.emplace_back(dots[i].y);
 		
 		}
-		//memcpy(imgsrc->dots_data, &data[0], data.size()*sizeof(int));
-		//imgsrc->dots_data = &data[0];
-		//imgsrc->dots_data = dataarray;
 
 		critical_section->setImageSource(imgsrc);
 		
@@ -585,15 +561,12 @@ bool TPGROpenCV::getDots(cv::Mat &src, std::vector<cv::Point> &dots, double C, i
 				calCoG_dot_v0(resized, sum, cnt, min, max, cv::Point(j, i));
 				if (cnt>dots_thresh_min && max.x - min.x < dots_thresh_max && max.y - min.y < dots_thresh_max) {
 
-					//検出した点が壁の汚れである可能性があるので、色で識別する
 					int x = sum.x / cnt;
 					int y = sum.y / cnt;
 					int index = hsv.step * y + (x * 3);
 
-					//std::cout << (unsigned int)tmp.at<uchar>(i, j) << std::endl;
-
 					//検出した点が壁の汚れである可能性があるので、色で識別する
-					//if((unsigned int)tmp.at<uchar>(i, j) >= 150)
+					//if((unsigned int)tmp.at<uchar>(i, j) >= DOT_THRESH_VAL_BRIGHT)
 					if(hsv.data[index + 2] >= DOT_THRESH_VAL_BRIGHT)
 					{
 						dots.push_back(cv::Point(x, y));
@@ -654,12 +627,6 @@ int TPGROpenCV::getDotsCount()
 	return imgsrc->dotsCount;
 }
 
-//void TPGROpenCV::getDotsData(int *data)
-//{
-//	critical_section->getImageSource(imgsrc);
-//	data = &imgsrc->dots_data[0];
-//
-//}
 void TPGROpenCV::getDotsData(std::vector<int> &data)
 {
 	critical_section->getImageSource(imgsrc);

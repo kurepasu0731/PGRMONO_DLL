@@ -72,7 +72,6 @@ private:
 	}
 
 	//処理時間計測用・DebugLog表示用
-	//文字列が長すぎると文字化ける
 	void stopTic(std::string label);
 
 
@@ -116,7 +115,6 @@ public:
 	void setDotsParameters(double AthreshVal, int DotThreshValMin, int DotThreshValMax, int DotThreshValBright, float resizeScale);
 	int getDotsCount();
 	void getDotsData(std::vector<int> &data);
-	//void getDotsData(int *data);
 
 	cv::Mat mask; //投影対象領域（マスク用）
 

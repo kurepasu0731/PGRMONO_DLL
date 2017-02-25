@@ -25,5 +25,5 @@ extern "C" {
    DLLExport int getDotsCount(void* camera);
    DLLExport void getDotsData(void* camera, int *data);
    //É}ÉXÉNê∂ê¨
-	DLLExport void createCameraMask_pgr(void* camera, unsigned char* cam_data);
+   DLLExport void createCameraMask_pgr(void* camera, unsigned char* cam_data);
 }
